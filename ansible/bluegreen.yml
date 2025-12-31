@@ -1,0 +1,28 @@
+- hosts: localhost
+  tasks:
+
+    - name: Stop old containers if exist
+      shell: |
+        docker stop blue || true
+        docker stop green || true
+      ignore_errors: yes
+
+    - name: Remove old containers if exist
+      shell: |
+        docker rm blue || true
+        docker rm green || true
+      ignore_errors: yes
+
+    - name: Run Blue container
+      shell: docker run -d -p 8081:8080 --name blue -e APP_VERSION="BLUE version" java-app:latest
+
+    - name: Run Green container
+      shell: docker run -d -p 8082:8080 --name green -e APP_VERSION="GREEN version" java-app:latest
+
+    - name: Show running containers
+      shell: docker ps
+      register: result
+
+    - debug:
+        var: result.stdout
+
