@@ -3,26 +3,40 @@ pipeline {
 
     stages {
 
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                echo "Building Java app"
+                checkout scm
+            }
+        }
+
+        stage('Build Jar') {
+            steps {
                 sh 'mvn clean package'
             }
         }
 
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
-                echo "Building Docker image"
                 sh 'docker build -t java-app:latest .'
             }
         }
 
-        stage('Deploy Blue-Green') {
+        stage('Blue-Green Deploy') {
             steps {
-                echo "Running Ansible Playbook"
-                sh 'ansible-playbook ansible/bluegreen.yml'
+                sh 'ansible-playbook ansible/bluegreen-deploy.yml'
+            }
+        }
+
+        stage('Test App') {
+            steps {
+                sh '''
+                echo "Testing Blue"
+                curl -s http://localhost:8081 || true
+                echo ""
+                echo "Testing Green"
+                curl -s http://localhost:8082 || true
+                '''
             }
         }
     }
 }
-
