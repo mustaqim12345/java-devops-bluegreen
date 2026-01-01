@@ -1,0 +1,9 @@
+- hosts: localhost
+  become: true
+  tasks:
+    - name: Stop blue container if running
+      shell: docker rm -f blue || true
+
+    - name: Run blue container
+      shell: docker run -d -p 8081:8080 --name blue java-app:latest
+
