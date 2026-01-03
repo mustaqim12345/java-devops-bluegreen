@@ -3,12 +3,6 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/mustaqim12345/java-devops-bluegreen.git'
-            }
-        }
-
         stage('Build Jar') {
             steps {
                 sh 'mvn clean package'
