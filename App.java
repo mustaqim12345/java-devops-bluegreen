@@ -16,7 +16,7 @@ public class App {
 
     static class MyHandler implements HttpHandler {
         public void handle(HttpExchange t) throws IOException {
-            String version = System.getenv("APP_VERSION");
+            String version = System.getenv("APP_VERSION") == null
             if (version == null) version = "UNKNOWN version";
             String response = "Hello from " + version;
             t.sendResponseHeaders(200, response.length());

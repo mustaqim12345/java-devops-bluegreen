@@ -5,7 +5,7 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/mustaqim12345/java-devops-bluegreen.git'
             }
         }
 
@@ -21,22 +21,50 @@ pipeline {
             }
         }
 
-        stage('Blue-Green Deploy') {
+        stage('Deploy BLUE') {
             steps {
-                sh 'ansible-playbook ansible/bluegreen-deploy.yml'
+                sh '''
+                docker stop blue || true
+                docker rm blue || true
+
+                docker run -d \
+                  -p 8081:8080 \
+                  --name blue \
+                  -e APP_VERSION=BLUE \
+                  java-app:latest
+                '''
             }
         }
 
-        stage('Test App') {
+        stage('Deploy GREEN') {
             steps {
                 sh '''
-                echo "Testing Blue"
-                curl -s http://localhost:8081 || true
-                echo ""
-                echo "Testing Green"
-                curl -s http://localhost:8082 || true
+                docker stop green || true
+                docker rm green || true
+
+                docker run -d \
+                  -p 8082:8080 \
+                  --name green \
+                  -e APP_VERSION=GREEN \
+                  java-app:latest
                 '''
+            }
+        }
+
+        stage('Health Check GREEN') {
+            steps {
+                sh '''
+                sleep 10
+                curl -f http://localhost:8082
+                '''
+            }
+        }
+
+        stage('Switch Traffic (Stop BLUE)') {
+            steps {
+                sh 'docker stop blue'
             }
         }
     }
 }
+
